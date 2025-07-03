@@ -4,20 +4,25 @@
     <p class="subtitle">Find one-of-a-kind items with history and character. Each piece tells a story.</p>
     
     <div class="products-grid">
-      <ProductCard v-for="item in products" :key="item.id" :product="item" />
+      <ProductCard 
+        v-for="(item, index) in approvedProducts" 
+        :key="item.id" 
+        :product="item"
+        :index="index"
+      />
     </div>
   </div>
 </template>
 
 <script>
-import { mapState } from 'vuex';
+import { mapGetters } from 'vuex';
 import ProductCard from '@/components/ProductCard.vue';
 
 export default {
   name: 'HomeView',
   components: { ProductCard },
   computed: {
-    ...mapState(['products'])
+    ...mapGetters(['approvedProducts'])
   }
 }
 </script>

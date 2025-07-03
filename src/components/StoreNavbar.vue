@@ -8,22 +8,31 @@
     <div class="nav-links">
       <router-link to="/">Home</router-link>
       <router-link to="/upload">Sell Item</router-link>
-      <router-link to="/profile">My Items</router-link>
-      <router-link to="/admin">Admin</router-link>
+      <router-link to="/profile">My Profile</router-link>
+      <router-link to="/admin" v-if="user.isAdmin">Admin</router-link>
     </div>
     
     <div class="user-actions">
-      <div class="cart-icon">
+      <router-link to="/cart" class="cart-icon">
         <i class="fas fa-shopping-cart"></i>
-        <span class="cart-count">3</span>
-      </div>
-      <div class="user-avatar">JD</div>
+        <span class="cart-count">{{ cartItemCount }}</span>
+      </router-link>
+      <div class="user-avatar">{{ userInitials }}</div>
     </div>
   </nav>
 </template>
 
 <script>
+import { mapState, mapGetters } from 'vuex';
+
 export default {
-  name: 'StoreNavbar'
+  name: 'StoreNavbar',
+  computed: {
+    ...mapState(['user']),
+    ...mapGetters(['cartItemCount']),
+    userInitials() {
+      return this.user.name.split(' ').map(n => n[0]).join('');
+    }
+  }
 }
 </script>

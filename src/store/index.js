@@ -9,7 +9,9 @@ const sampleProducts = [
     image: "https://images.unsplash.com/photo-1551028719-00167b16eac5?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&h=600&q=80",
     description: "Genuine leather jacket from the 90s in excellent condition. Perfect for any occasion.",
     category: "Clothing",
-    status: "approved"
+    status: "approved",
+    likes: 10,
+    owner: "Jane Doe"
   },
   {
     id: 2,
@@ -18,7 +20,9 @@ const sampleProducts = [
     image: "https://images.unsplash.com/photo-1507838153414-b4b713384a76?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&h=600&q=80",
     description: "Vintage record player with warm sound quality. Fully functional and tested.",
     category: "Electronics",
-    status: "approved"
+    status: "approved",
+    likes: 5,
+    owner: "Jane Doe"
   },
   {
     id: 3,
@@ -27,7 +31,9 @@ const sampleProducts = [
     image: "https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&h=600&q=80",
     description: "Beautifully crafted wooden chair from the early 20th century. Solid construction.",
     category: "Furniture",
-    status: "approved"
+    status: "approved",
+    likes: 7,
+    owner: "John Smith"
   },
   {
     id: 4,
@@ -36,7 +42,9 @@ const sampleProducts = [
     image: "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&h=600&q=80",
     description: "Vintage Polaroid camera with original case. Includes film cartridges.",
     category: "Electronics",
-    status: "approved"
+    status: "approved",
+    likes: 12,
+    owner: "Jane Doe"
   }
 ];
 
@@ -48,7 +56,9 @@ const pendingProducts = [
     image: "https://images.unsplash.com/photo-1598300042247-d088f8ab3a91?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&h=600&q=80",
     description: "Authentic handwoven Persian rug with intricate patterns. Excellent condition.",
     category: "Home Decor",
-    status: "pending"
+    status: "pending",
+    likes: 0,
+    owner: "Jane Doe"
   },
   {
     id: 6,
@@ -57,54 +67,113 @@ const pendingProducts = [
     image: "https://images.unsplash.com/photo-1580477667995-2b94f01c9516?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&h=600&q=80",
     description: "Elegant mid-century modern table lamp with brass accents. Fully functional.",
     category: "Home Decor",
-    status: "pending"
+    status: "pending",
+    likes: 0,
+    owner: "John Smith"
   }
 ];
 
 export default createStore({
-  state() {
-    return {
-      products: sampleProducts,
-      userProducts: [
-        sampleProducts[0],
-        sampleProducts[2]
-      ],
-      pendingApprovals: pendingProducts,
-      user: {
-        name: "Jane Doe",
-        email: "jane@example.com",
-        isAdmin: true
-      }
-    };
+  state: {
+    products: [...sampleProducts],
+    userProducts: [...sampleProducts.filter(p => p.owner === "Jane Doe")],
+    pendingApprovals: [...pendingProducts],
+    cart: [],
+    wishlist: [],
+    user: {
+      name: "Jane Doe",
+      email: "jane@example.com",
+      isAdmin: true
+    },
+    email: ''
   },
   mutations: {
     ADD_PRODUCT(state, product) {
-      product.status = "pending";
-      state.pendingApprovals.push(product);
+      const newProduct = {
+        ...product,
+        id: Date.now(),
+        status: "pending",
+        likes: 0,
+        owner: state.user.name
+      };
+      state.pendingApprovals.push(newProduct);
+      state.userProducts.push(newProduct);
     },
     APPROVE_PRODUCT(state, id) {
-      const item = state.pendingApprovals.find(p => p.id === id);
-      if (item) {
-        item.status = "approved";
-        state.products.push(item);
-        state.pendingApprovals = state.pendingApprovals.filter(p => p.id !== id);
+      const index = state.pendingApprovals.findIndex(p => p.id === id);
+      if (index !== -1) {
+        const product = { ...state.pendingApprovals[index] };
+        product.status = "approved";
+        state.products.push(product);
+        state.pendingApprovals.splice(index, 1);
       }
     },
-    ADD_USER_PRODUCT(state, product) {
-      state.userProducts.push(product);
+    ADD_TO_CART(state, product) {
+      const existing = state.cart.find(p => p.id === product.id);
+      if (existing) {
+        existing.quantity += 1;
+      } else {
+        state.cart.push({ ...product, quantity: 1 });
+      }
+    },
+    REMOVE_FROM_CART(state, id) {
+      state.cart = state.cart.filter(item => item.id !== id);
+    },
+    UPDATE_QUANTITY(state, { id, quantity }) {
+      const item = state.cart.find(item => item.id === id);
+      if (item) {
+        item.quantity = quantity;
+      }
+    },
+    TOGGLE_WISHLIST(state, productId) {
+      const index = state.wishlist.indexOf(productId);
+      if (index === -1) {
+        state.wishlist.push(productId);
+      } else {
+        state.wishlist.splice(index, 1);
+      }
+    },
+    LIKE_PRODUCT(state, productId) {
+      const product = state.products.find(p => p.id === productId);
+      if (product) {
+        product.likes += 1;
+      }
+    },
+    SET_EMAIL(state, email) {
+      state.email = email;
     }
   },
   actions: {
     uploadProduct({ commit }, product) {
       commit('ADD_PRODUCT', product);
-      commit('ADD_USER_PRODUCT', product);
     },
     approveProduct({ commit }, id) {
       commit('APPROVE_PRODUCT', id);
+    },
+    addToCart({ commit }, product) {
+      commit('ADD_TO_CART', product);
+    },
+    removeFromCart({ commit }, id) {
+      commit('REMOVE_FROM_CART', id);
+    },
+    updateQuantity({ commit }, payload) {
+      commit('UPDATE_QUANTITY', payload);
+    },
+    toggleWishlist({ commit }, productId) {
+      commit('TOGGLE_WISHLIST', productId);
+    },
+    likeProduct({ commit }, productId) {
+      commit('LIKE_PRODUCT', productId);
+    },
+    setEmail({ commit }, email) {
+      commit('SET_EMAIL', email);
     }
   },
   getters: {
     approvedProducts: state => state.products.filter(p => p.status === 'approved'),
-    pendingProducts: state => state.pendingApprovals
+    pendingProducts: state => state.pendingApprovals,
+    cartItemCount: state => state.cart.reduce((count, item) => count + item.quantity, 0),
+    cartTotal: state => state.cart.reduce((total, item) => total + (item.price * item.quantity), 0),
+    isInWishlist: state => productId => state.wishlist.includes(productId)
   }
 });

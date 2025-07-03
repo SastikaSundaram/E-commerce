@@ -35,9 +35,15 @@
           </div>
         </div>
         
-        <button type="submit" class="btn btn-submit">
-          <i class="fas fa-upload"></i> List Item for Sale
+        <button type="submit" class="btn btn-submit" :disabled="isSubmitting">
+          <i class="fas fa-upload"></i> 
+          {{ isSubmitting ? 'Uploading...' : 'List Item for Sale' }}
         </button>
+        
+        <div v-if="uploadSuccess" class="success-message">
+          <i class="fas fa-check-circle"></i>
+          Product uploaded successfully! It will be visible after admin approval.
+        </div>
       </form>
     </div>
   </div>
@@ -53,27 +59,38 @@ export default {
       description: '',
       category: 'Clothing',
       image: 'https://images.unsplash.com/photo-1566150905458-1bf1fc113f0d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&h=600&q=80',
-      categories: ['Clothing', 'Electronics', 'Furniture', 'Home Decor', 'Books', 'Collectibles']
+      categories: ['Clothing', 'Electronics', 'Furniture', 'Home Decor', 'Books', 'Collectibles'],
+      isSubmitting: false,
+      uploadSuccess: false
     };
   },
   methods: {
     upload() {
+      this.isSubmitting = true;
+      
       const product = {
-        id: Date.now(),
         title: this.title,
         price: parseFloat(this.price),
         description: this.description,
         category: this.category,
         image: this.image
       };
+      
       this.$store.dispatch('uploadProduct', product);
+      this.uploadSuccess = true;
+      this.resetForm();
+      this.isSubmitting = false;
+      
+      // Hide success message after 5 seconds
+      setTimeout(() => {
+        this.uploadSuccess = false;
+      }, 5000);
+    },
+    resetForm() {
       this.title = '';
       this.price = '';
       this.description = '';
       this.category = 'Clothing';
-      
-      // Show success message
-      alert('Product uploaded successfully! It will be visible after admin approval.');
     }
   }
 }

@@ -5,7 +5,13 @@
     
     <div class="admin-panel">
       <h2>Pending Approvals</h2>
-      <table class="admin-table">
+      
+      <div v-if="pendingApprovals.length === 0" class="empty-state">
+        <i class="fas fa-check-circle"></i>
+        <p>No pending approvals at this time.</p>
+      </div>
+      
+      <table v-else class="admin-table">
         <thead>
           <tr>
             <th>Image</th>
@@ -34,7 +40,7 @@ import { mapState } from 'vuex';
 import AdminProductRow from '@/components/AdminProductRow.vue';
 
 export default {
-  name: 'AdminView', 
+  name: 'AdminView',
   components: { AdminProductRow },
   computed: {
     ...mapState(['pendingApprovals'])
@@ -46,3 +52,17 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+.empty-state {
+  text-align: center;
+  padding: 3rem;
+  color: var(--gray);
+}
+
+.empty-state i {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  color: var(--success);
+}
+</style>

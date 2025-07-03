@@ -1,7 +1,6 @@
 <template>
   <div>
     <StoreNavbar />
-    <Navbar />
     <div class="page-container">
       <router-view v-slot="{ Component }">
         <transition name="slide-up" mode="out-in">
@@ -26,11 +25,10 @@
         <div class="footer-section">
           <h3>Quick Links</h3>
           <ul class="footer-links">
-            <li><a href="#"><i class="fas fa-chevron-right"></i> Home</a></li>
-            <li><a href="#"><i class="fas fa-chevron-right"></i> Shop</a></li>
-            <li><a href="#"><i class="fas fa-chevron-right"></i> Sell Item</a></li>
-            <li><a href="#"><i class="fas fa-chevron-right"></i> About Us</a></li>
-            <li><a href="#"><i class="fas fa-chevron-right"></i> Contact</a></li>
+            <li><router-link to="/"><i class="fas fa-chevron-right"></i> Home</router-link></li>
+            <li><router-link to="/upload"><i class="fas fa-chevron-right"></i> Sell Item</router-link></li>
+            <li><router-link to="/profile"><i class="fas fa-chevron-right"></i> My Profile</router-link></li>
+            <li><router-link to="/admin" v-if="user.isAdmin"><i class="fas fa-chevron-right"></i> Admin</router-link></li>
           </ul>
         </div>
         
@@ -47,9 +45,9 @@
           <h3>Newsletter</h3>
           <p>Subscribe to get special offers, free giveaways, and sustainable living tips.</p>
           <div class="form-group">
-            <input type="email" class="form-control" placeholder="Your Email Address">
+            <input type="email" class="form-control" placeholder="Your Email Address" v-model="email">
           </div>
-          <button class="btn btn-primary">Subscribe</button>
+          <button class="btn btn-primary" @click="subscribe">Subscribe</button>
         </div>
       </div>
       
@@ -61,9 +59,29 @@
 </template>
 
 <script>
-import StoreNavbar from './components/StoreNavbar.vue';
+import { mapState } from 'vuex';
+import StoreNavbar from '@/components/StoreNavbar.vue';
 
 export default {
-  components: { StoreNavbar }
+  components: { StoreNavbar },
+  computed: {
+    ...mapState(['user']),
+    email: {
+      get() {
+        return this.$store.state.email;
+      },
+      set(value) {
+        this.$store.dispatch('setEmail', value);
+      }
+    }
+  },
+  methods: {
+    subscribe() {
+      if (this.email) {
+        alert(`Thank you for subscribing with ${this.email}!`);
+        this.email = '';
+      }
+    }
+  }
 }
 </script>
