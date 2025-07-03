@@ -2,6 +2,9 @@
   <div>
     <StoreNavbar />
     <div class="page-container">
+
+      
+
       <router-view v-slot="{ Component }">
         <transition name="slide-up" mode="out-in">
           <component :is="Component" />
@@ -28,7 +31,9 @@
             <li><router-link to="/"><i class="fas fa-chevron-right"></i> Home</router-link></li>
             <li><router-link to="/upload"><i class="fas fa-chevron-right"></i> Sell Item</router-link></li>
             <li><router-link to="/profile"><i class="fas fa-chevron-right"></i> My Profile</router-link></li>
-            <li><router-link to="/admin" v-if="user.isAdmin"><i class="fas fa-chevron-right"></i> Admin</router-link></li>
+            <li><router-link to="/admin" v-if="currentUser && currentUser.isAdmin">
+      <i class="fas fa-chevron-right"></i> Admin
+    </router-link></li>
           </ul>
         </div>
         
@@ -59,13 +64,18 @@
 </template>
 
 <script>
-import { mapState } from 'vuex';
+import { mapGetters } from 'vuex';
 import StoreNavbar from '@/components/StoreNavbar.vue';
 
 export default {
   components: { StoreNavbar },
+  data() {
+    return {
+      showDebug: true // Set to false in production
+    };
+  },
   computed: {
-    ...mapState(['user']),
+    ...mapGetters(['isAuthenticated', 'currentUser']),
     email: {
       get() {
         return this.$store.state.email;
@@ -85,3 +95,13 @@ export default {
   }
 }
 </script>
+<style>
+.debug-info {
+  background: #f8f8f8;
+  border: 1px solid #eee;
+  padding: 10px;
+  margin-bottom: 20px;
+  font-size: 14px;
+  border-radius: 4px;
+}
+</style>

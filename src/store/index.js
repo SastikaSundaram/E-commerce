@@ -1,5 +1,33 @@
 import { createStore } from 'vuex';
 
+// Sample users
+const users = [
+  {
+    id: 1,
+    name: "Jane Doe",
+    email: "jane@example.com",
+    password: "password123",
+    isAdmin: true,
+    avatar: "JD"
+  },
+  {
+    id: 2,
+    name: "John Smith",
+    email: "john@example.com",
+    password: "password123",
+    isAdmin: false,
+    avatar: "JS"
+  },
+  {
+    id: 3,
+    name: "Emma Wilson",
+    email: "emma@example.com",
+    password: "password123",
+    isAdmin: false,
+    avatar: "EW"
+  }
+];
+
 // Sample products data
 const sampleProducts = [
   {
@@ -75,26 +103,47 @@ const pendingProducts = [
 
 export default createStore({
   state: {
+    user: null, 
+    currentUser: null,
+    users: users,
     products: [...sampleProducts],
     userProducts: [...sampleProducts.filter(p => p.owner === "Jane Doe")],
     pendingApprovals: [...pendingProducts],
     cart: [],
     wishlist: [],
-    user: {
-      name: "Jane Doe",
-      email: "jane@example.com",
-      isAdmin: true
-    },
     email: ''
   },
   mutations: {
+    LOGIN(state, user) {
+      state.currentUser = user;
+    },
+    LOGOUT(state) {
+      state.currentUser = null;
+    },
+    REGISTER_USER(state, user) {
+      // Generate a unique ID for the new user
+      const newId = Math.max(0, ...state.users.map(u => u.id)) + 1;
+      
+      // Create new user object
+      const newUser = {
+        id: newId,
+        name: user.name,
+        email: user.email,
+        password: user.password,
+        isAdmin: false,
+        avatar: user.name.split(' ').map(n => n[0]).join('')
+      };
+      
+      // Add to users array
+      state.users.push(newUser);
+    },
     ADD_PRODUCT(state, product) {
       const newProduct = {
         ...product,
         id: Date.now(),
         status: "pending",
         likes: 0,
-        owner: state.user.name
+        owner: state.currentUser.name
       };
       state.pendingApprovals.push(newProduct);
       state.userProducts.push(newProduct);
@@ -144,6 +193,35 @@ export default createStore({
     }
   },
   actions: {
+    login({ commit }, credentials) {
+      const user = this.state.users.find(u => 
+        u.email === credentials.email && u.password === credentials.password
+      );
+      
+      if (user) {
+        commit('LOGIN', user);
+        return true;
+      }
+      return false;
+    },
+    logout({ commit }) {
+      commit('LOGOUT');
+    },
+    registerUser({ commit, state }, userData) {
+      return new Promise((resolve, reject) => {
+        // Check if email already exists
+        const emailExists = state.users.some(u => u.email === userData.email);
+        
+        if (emailExists) {
+          reject(new Error('Email already registered'));
+          return;
+        }
+        
+        // Register the user
+        commit('REGISTER_USER', userData);
+        resolve();
+      });
+    },
     uploadProduct({ commit }, product) {
       commit('ADD_PRODUCT', product);
     },
@@ -170,6 +248,8 @@ export default createStore({
     }
   },
   getters: {
+    isAuthenticated: state => !!state.currentUser,
+    currentUser: state => state.currentUser,
     approvedProducts: state => state.products.filter(p => p.status === 'approved'),
     pendingProducts: state => state.pendingApprovals,
     cartItemCount: state => state.cart.reduce((count, item) => count + item.quantity, 0),

@@ -8,8 +8,11 @@
           <div class="profile-avatar">
             {{ userInitials }}
           </div>
-          <div class="profile-name">{{ user.name }}</div>
-          <div class="profile-email">{{ user.email }}</div>
+          <div class="profile-name">{{ currentUser.name }}</div>
+          <div class="profile-email">{{ currentUser.email }}</div>
+          <div v-if="currentUser.isAdmin" class="admin-badge">
+            <i class="fas fa-crown"></i> Admin User
+          </div>
         </div>
         
         <div class="profile-stats">
@@ -74,16 +77,17 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'; // Removed mapGetters import
+import { mapState, mapGetters } from 'vuex';
 import ProductCard from '@/components/ProductCard.vue';
 
 export default {
   name: 'ProfileView',
   components: { ProductCard },
   computed: {
-    ...mapState(['user', 'userProducts', 'wishlist', 'products']),
+    ...mapGetters(['currentUser']),
+    ...mapState(['userProducts', 'wishlist', 'products']),
     userInitials() {
-      return this.user.name.split(' ').map(n => n[0]).join('');
+      return this.currentUser?.name.split(' ').map(n => n[0]).join('') || '';
     },
     wishlistProducts() {
       return this.products.filter(p => this.wishlist.includes(p.id));
@@ -91,3 +95,18 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+.admin-badge {
+  background: var(--accent);
+  color: #333;
+  padding: 5px 10px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin-top: 0.5rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+</style>
